@@ -121,6 +121,20 @@ export default function DiscoverScreen() {
       }
 
       // Appeler l'API pour les événements généraux via eventsBackendService
+      console.log('🔍 DiscoverScreen - Appel eventsBackendService.getEvents avec filtres:', {
+        latitude: apiFilters.lat,
+        longitude: apiFilters.lng,
+        radius: apiFilters.radius,
+        sports: apiFilters.sports,
+        levels: apiFilters.levels,
+        priceMin: apiFilters.priceMin,
+        priceMax: apiFilters.priceMax,
+        dateFrom: apiFilters.dateFrom,
+        dateTo: apiFilters.dateTo,
+        limit: apiFilters.limit,
+        offset: apiFilters.offset
+      });
+      
       const { data: apiEventsData, error: apiEventsError } = await eventsBackendService.getEvents({
         latitude: apiFilters.lat,
         longitude: apiFilters.lng,
@@ -135,7 +149,16 @@ export default function DiscoverScreen() {
         offset: apiFilters.offset
       });
       
+      console.log('🔍 DiscoverScreen - Réponse eventsBackendService:', {
+        data: apiEventsData,
+        error: apiEventsError
+      });
+      
       const apiEvents = apiEventsData?.events || [];
+      console.log('🔍 DiscoverScreen - Événements récupérés:', apiEvents.map(e => ({
+        name: e.name,
+        organizer_profile_picture_url: e.organizer_profile_picture_url
+      })));
       
       // Récupérer aussi les événements où l'utilisateur participe déjà
       let joinedEvents: EventWithDistance[] = [];

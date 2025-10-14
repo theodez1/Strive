@@ -89,7 +89,15 @@ class EventsBackendService {
         throw new Error('Backend URL non configurée');
       }
       
+      console.log('🔍 eventsBackendService.getEvents - Filtres reçus:', filters);
+      console.log('🔍 eventsBackendService.getEvents - URL:', `${this.baseURL}/events`);
+      
       const response = await this.http.get(`/events`, { params: filters });
+      
+      console.log('🔍 eventsBackendService.getEvents - Réponse HTTP:', {
+        status: response.status,
+        data: response.data
+      });
 
       if (response.status >= 200 && response.status < 300 && response.data?.success) {
         const eventsData = response.data.data || { events: [], total: 0, hasMore: false };
