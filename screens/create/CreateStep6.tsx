@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
   TextInput,
   ActivityIndicator,
   TouchableWithoutFeedback,
   Keyboard,
+  ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -265,174 +265,183 @@ const CreateStep6 = () => {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.container}>
-        <ScrollView 
-          style={styles.content}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Titre */}
-          <Text style={styles.title}>Où aura lieu votre événement ?</Text>
+            {/* Contenu non scrollable */}
+            <View style={styles.contentStatic}>
+              {/* Titre */}
+              <Text style={styles.title}>Où aura lieu votre événement ?</Text>
 
-          {/* Barre de recherche */}
-          <View style={styles.searchContainer}>
-            <View style={styles.searchInputWrapper}>
-              <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder={hasApiKey ? "Rechercher un lieu, une adresse..." : "Saisir une adresse manuellement"}
-                placeholderTextColor="#999"
-                value={searchQuery}
-                onChangeText={handleSearch}
-                autoCorrect={false}
-                autoCapitalize="none"
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => {
-                  setSearchQuery('');
-                  setSearchResults([]);
-                }}>
-                  <Ionicons name="close-circle" size={20} color="#999" />
+              {/* Barre de recherche */}
+              <View style={styles.searchContainer}>
+                <View style={styles.searchInputWrapper}>
+                  <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder={hasApiKey ? "Rechercher un lieu, une adresse..." : "Saisir une adresse manuellement"}
+                    placeholderTextColor="#999"
+                    value={searchQuery}
+                    onChangeText={handleSearch}
+                    autoCorrect={false}
+                    autoCapitalize="none"
+                  />
+                  {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => {
+                      setSearchQuery('');
+                      setSearchResults([]);
+                    }}>
+                      <Ionicons name="close-circle" size={20} color="#999" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              {/* Loading */}
+              {isSearching && (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color={PRIMARY_COLOR} />
+                  <Text style={styles.loadingText}>Recherche...</Text>
+                </View>
+              )}
+
+              {/* Résultats de recherche (scroll interne) */}
+              {searchResults.length > 0 && !isSearching && (
+                <View style={styles.resultsSection}>
+                  <Text style={styles.sectionTitle}>Résultats</Text>
+                  <ScrollView
+                    style={styles.resultsScroll}
+                    contentContainerStyle={styles.resultsScrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                  >
+                    {searchResults.map((result) => {
+                      const isPlace = result.types.some(type => 
+                        ['establishment', 'point_of_interest', 'restaurant', 'store'].includes(type)
+                      );
+                      return (
+                        <TouchableOpacity
+                          key={result.place_id}
+                          style={styles.resultCard}
+                          onPress={() => handleSelectPlace(result)}
+                        >
+                          <View style={[styles.resultIcon, isPlace && styles.resultIconPlace]}>
+                            <Ionicons 
+                              name={isPlace ? "business" : "location"} 
+                              size={20} 
+                              color={isPlace ? PRIMARY_COLOR : "#666"} 
+                            />
+                          </View>
+                          <View style={styles.resultContent}>
+                            <Text style={[styles.resultMainText, isPlace && styles.resultMainTextPlace]}>
+                              {result.main_text}
+                            </Text>
+                            {result.secondary_text && (
+                              <Text style={styles.resultSecondaryText}>{result.secondary_text}</Text>
+                            )}
+                          </View>
+                          <Ionicons name="chevron-forward" size={20} color="#ccc" />
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Lieu sélectionné */}
+              {selectedLocation && selectedLocation.address && (
+                <View style={styles.selectedSection}>
+                  <View style={styles.selectedHeader}>
+                    <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                    <Text style={styles.selectedTitle}>Lieu sélectionné</Text>
+                    <TouchableOpacity onPress={() => setSelectedLocation(null)}>
+                      <Text style={styles.changeText}>Modifier</Text>
+                    </TouchableOpacity>
+                  </View>
+                  
+                  <View style={styles.selectedCard}>
+                    <View style={styles.selectedIconContainer}>
+                      <Ionicons 
+                        name={selectedLocation.isPlace ? "business" : "location"} 
+                        size={24} 
+                        color={PRIMARY_COLOR} 
+                      />
+                    </View>
+                    <View style={styles.selectedInfo}>
+                      {selectedLocation.name && (
+                        <Text style={styles.selectedName}>{selectedLocation.name}</Text>
+                      )}
+                      <Text style={styles.selectedAddress}>{selectedLocation.address}</Text>
+                      {(selectedLocation.city || selectedLocation.country) && (
+                        <Text style={styles.selectedCity}>
+                          {[selectedLocation.city, selectedLocation.country].filter(Boolean).join(', ')}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {/* Historique (scroll interne) */}
+              {!selectedLocation && searchQuery.length === 0 && locationHistory.length > 0 && (
+                <View style={styles.historySection}>
+                  <View style={styles.historySectionHeader}>
+                    <Text style={styles.sectionTitle}>Recherches récentes</Text>
+                    <TouchableOpacity onPress={clearHistory}>
+                      <Text style={styles.clearText}>Tout effacer</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <ScrollView
+                    style={styles.historyScroll}
+                    contentContainerStyle={styles.historyScrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                  >
+                    {locationHistory.map((item, index) => (
+                      <TouchableOpacity
+                        key={`history-${index}`}
+                        style={styles.historyCard}
+                        onPress={() => handleSelectFromHistory(item)}
+                      >
+                        <View style={styles.historyIcon}>
+                          <Ionicons 
+                            name={item.isPlace ? "business-outline" : "location-outline"} 
+                            size={18} 
+                            color="#999" 
+                          />
+                        </View>
+                        <View style={styles.historyContent}>
+                          {item.name && <Text style={styles.historyName}>{item.name}</Text>}
+                          <Text style={styles.historyAddress} numberOfLines={1}>
+                            {item.address}
+                          </Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={18} color="#ddd" />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
+              {/* Message si pas d'API key */}
+              {!hasApiKey && (
+                <View style={styles.warningBox}>
+                  <Ionicons name="warning-outline" size={24} color="#ff9800" />
+                  <Text style={styles.warningText}>
+                    L'API Google Maps n'est pas configurée. Vous pouvez saisir une adresse manuellement.
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Footer fixé */}
+            <View style={styles.footer}>
+              <TouchableOpacity style={styles.backButtonFooter} onPress={handleBack}>
+                <Ionicons name="arrow-back" size={20} color="#fff" />
+              </TouchableOpacity>
+              {selectedLocation && selectedLocation.address && (
+                <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+                  <Ionicons name="arrow-forward" size={20} color="#fff" />
                 </TouchableOpacity>
               )}
             </View>
-          </View>
-
-          {/* Loading */}
-          {isSearching && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={PRIMARY_COLOR} />
-              <Text style={styles.loadingText}>Recherche...</Text>
-            </View>
-          )}
-
-          {/* Résultats de recherche */}
-          {searchResults.length > 0 && !isSearching && (
-            <View style={styles.resultsSection}>
-              <Text style={styles.sectionTitle}>Résultats</Text>
-              {searchResults.map((result) => {
-                const isPlace = result.types.some(type => 
-                  ['establishment', 'point_of_interest', 'restaurant', 'store'].includes(type)
-                );
-                return (
-                  <TouchableOpacity
-                    key={result.place_id}
-                    style={styles.resultCard}
-                    onPress={() => handleSelectPlace(result)}
-                  >
-                    <View style={[styles.resultIcon, isPlace && styles.resultIconPlace]}>
-                      <Ionicons 
-                        name={isPlace ? "business" : "location"} 
-                        size={20} 
-                        color={isPlace ? PRIMARY_COLOR : "#666"} 
-                      />
-                    </View>
-                    <View style={styles.resultContent}>
-                      <Text style={[styles.resultMainText, isPlace && styles.resultMainTextPlace]}>
-                        {result.main_text}
-                      </Text>
-                      {result.secondary_text && (
-                        <Text style={styles.resultSecondaryText}>{result.secondary_text}</Text>
-                      )}
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color="#ccc" />
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          )}
-
-          {/* Lieu sélectionné */}
-          {selectedLocation && selectedLocation.address && (
-            <View style={styles.selectedSection}>
-              <View style={styles.selectedHeader}>
-                <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-                <Text style={styles.selectedTitle}>Lieu sélectionné</Text>
-                <TouchableOpacity onPress={() => setSelectedLocation(null)}>
-                  <Text style={styles.changeText}>Modifier</Text>
-                </TouchableOpacity>
-              </View>
-              
-              <View style={styles.selectedCard}>
-                <View style={styles.selectedIconContainer}>
-                  <Ionicons 
-                    name={selectedLocation.isPlace ? "business" : "location"} 
-                    size={24} 
-                    color={PRIMARY_COLOR} 
-                  />
-                </View>
-                <View style={styles.selectedInfo}>
-                  {selectedLocation.name && (
-                    <Text style={styles.selectedName}>{selectedLocation.name}</Text>
-                  )}
-                  <Text style={styles.selectedAddress}>{selectedLocation.address}</Text>
-                  {(selectedLocation.city || selectedLocation.country) && (
-                    <Text style={styles.selectedCity}>
-                      {[selectedLocation.city, selectedLocation.country].filter(Boolean).join(', ')}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/* Historique */}
-          {!selectedLocation && searchQuery.length === 0 && locationHistory.length > 0 && (
-            <View style={styles.historySection}>
-              <View style={styles.historySectionHeader}>
-                <Text style={styles.sectionTitle}>Recherches récentes</Text>
-                <TouchableOpacity onPress={clearHistory}>
-                  <Text style={styles.clearText}>Tout effacer</Text>
-                </TouchableOpacity>
-              </View>
-              
-              {locationHistory.map((item, index) => (
-                <TouchableOpacity
-                  key={`history-${index}`}
-                  style={styles.historyCard}
-                  onPress={() => handleSelectFromHistory(item)}
-                >
-                  <View style={styles.historyIcon}>
-                    <Ionicons 
-                      name={item.isPlace ? "business-outline" : "location-outline"} 
-                      size={18} 
-                      color="#999" 
-                    />
-                  </View>
-                  <View style={styles.historyContent}>
-                    {item.name && <Text style={styles.historyName}>{item.name}</Text>}
-                    <Text style={styles.historyAddress} numberOfLines={1}>
-                      {item.address}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color="#ddd" />
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-
-          {/* Message si pas d'API key */}
-          {!hasApiKey && (
-            <View style={styles.warningBox}>
-              <Ionicons name="warning-outline" size={24} color="#ff9800" />
-              <Text style={styles.warningText}>
-                L'API Google Maps n'est pas configurée. Vous pouvez saisir une adresse manuellement.
-              </Text>
-            </View>
-          )}
-        </ScrollView>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <TouchableOpacity style={styles.backButtonFooter} onPress={handleBack}>
-              <Ionicons name="arrow-back" size={20} color="#fff" />
-            </TouchableOpacity>
-            {selectedLocation && selectedLocation.address && (
-              <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-                <Ionicons name="arrow-forward" size={20} color="#fff" />
-              </TouchableOpacity>
-            )}
-          </View>
 
           </View>
         </TouchableWithoutFeedback>
@@ -453,12 +462,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
-  content: {
+  contentStatic: {
     flex: 1,
     marginTop: 16,
-  },
-  scrollContent: {
-    paddingBottom: 20,
   },
   title: {
     fontSize: 20,
@@ -491,7 +497,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
+    paddingVertical: 12,
   },
   loadingText: {
     marginLeft: 12,
@@ -505,7 +511,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   resultsSection: {
-    marginBottom: 24,
+    marginBottom: 16,
+  },
+  resultsScroll: {
+    maxHeight: 260,
+    borderRadius: 12,
+  },
+  resultsScrollContent: {
+    paddingBottom: 4,
   },
   resultCard: {
     flexDirection: 'row',
@@ -553,7 +566,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   selectedSection: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   selectedHeader: {
     flexDirection: 'row',
@@ -622,6 +635,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: PRIMARY_COLOR,
     fontWeight: '600',
+  },
+  historyScroll: {
+    maxHeight: 200,
+  },
+  historyScrollContent: {
+    paddingBottom: 4,
   },
   historyCard: {
     flexDirection: 'row',
