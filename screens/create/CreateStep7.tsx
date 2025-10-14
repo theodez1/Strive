@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -194,6 +195,22 @@ const CreateStep7 = () => {
 
   const { date: eventDate, time: eventTime } = formatDate(formData.dateTime);
 
+  const openLocationInMaps = () => {
+    const { latitude, longitude, address } = formData.location;
+    if (!latitude || !longitude) return;
+    const label = encodeURIComponent(address || 'Lieu');
+    const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
+    const latLng = `${latitude},${longitude}`;
+    const url = Platform.select({
+      ios: `${scheme}${label}@${latLng}`,
+      android: `${scheme}${latLng}(${label})`,
+    });
+    if (url) Linking.openURL(url).catch(() => {
+      const web = `https://www.google.com/maps/search/?api=1&query=${latLng}`;
+      Linking.openURL(web).catch(() => {});
+    });
+  };
+
   // Overlay de chargement plein écran
   if (isCreating) {
     return (
@@ -256,8 +273,8 @@ const CreateStep7 = () => {
                 </View>
               </View>
 
-              {/* Lieu */}
-              <View style={styles.infoCard}>
+              {/* Lieu (cliquable) */}
+              <TouchableOpacity style={styles.infoCard} onPress={openLocationInMaps} activeOpacity={0.8}>
                 <View style={styles.iconContainer}>
                   <Ionicons name="location" size={24} color={PRIMARY_COLOR} />
                 </View>
@@ -270,7 +287,8 @@ const CreateStep7 = () => {
                     {formData.location.address}, {formData.location.city}
                   </Text>
                 </View>
-              </View>
+                <Ionicons name="open-outline" size={20} color="#999" />
+              </TouchableOpacity>
 
               {/* Participants */}
               <View style={styles.infoCard}>
@@ -304,7 +322,6 @@ const CreateStep7 = () => {
                   </View>
                 </View>
               </View>
-
 
               {/* Description */}
               {formData.description && formData.description.trim() !== '' && (
@@ -382,6 +399,7 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY_COLOR,
     borderRadius: 16,
     padding: 20,
+    marginTop: 8,
     marginBottom: 16,
     alignItems: 'center',
   },
@@ -445,6 +463,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#e9ecef',
+    alignItems: 'center',
   },
   iconContainer: {
     width: 48,
