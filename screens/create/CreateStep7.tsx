@@ -195,6 +195,23 @@ const CreateStep7 = () => {
 
   const { date: eventDate, time: eventTime } = formatDate(formData.dateTime);
 
+  const getSportIcon = (sport: string): string => {
+    const sportIcons: { [key: string]: string } = {
+      'Football': 'football-outline',
+      'Basketball': 'basketball-outline',
+      'Tennis': 'tennisball-outline',
+      'Volleyball': 'football-outline',
+      'Badminton': 'tennisball-outline',
+      'Running': 'walk-outline',
+      'Cycling': 'bicycle-outline',
+      'Swimming': 'water-outline',
+      'Padel': 'ellipse-outline',
+      'Fitness': 'barbell-outline',
+      'default': 'fitness-outline'
+    };
+    return sportIcons[sport] || sportIcons.default;
+  };
+
   const openLocationInMaps = () => {
     const { latitude, longitude, address } = formData.location;
     if (!latitude || !longitude) return;
@@ -244,7 +261,7 @@ const CreateStep7 = () => {
               <View style={styles.heroCard}>
                 <View style={styles.heroHeader}>
                   <View style={styles.sportBadge}>
-                    <Ionicons name="basketball" size={20} color="#fff" />
+                    <Ionicons name={getSportIcon(formData.sport) as any} size={20} color="#fff" />
                     <Text style={styles.sportText}>{formData.sport}</Text>
                   </View>
                   {formData.price === 0 ? (
