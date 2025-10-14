@@ -500,6 +500,9 @@ export class EventsService {
     const eventLat = parseFloat(event.latitude.toString());
     const eventLng = parseFloat(event.longitude.toString());
 
+    // Debug pour les photos de profil
+    console.log('🔍 Event:', event.name, 'Organizer profilePictureUrl:', event.organizer?.profilePictureUrl);
+
     let distance_km: number | undefined = undefined;
     if (userLat !== undefined && userLng !== undefined) {
       distance_km = calculateDistance(userLat, userLng, eventLat, eventLng);

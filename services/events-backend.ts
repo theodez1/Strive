@@ -92,7 +92,15 @@ class EventsBackendService {
       const response = await this.http.get(`/events`, { params: filters });
 
       if (response.status >= 200 && response.status < 300 && response.data?.success) {
-        return { data: response.data.data || { events: [], total: 0, hasMore: false }, error: null };
+        const eventsData = response.data.data || { events: [], total: 0, hasMore: false };
+        // Debug pour les photos de profil
+        if (eventsData.events && eventsData.events.length > 0) {
+          console.log('🔍 Frontend - Événements reçus:', eventsData.events.map(e => ({
+            name: e.name,
+            organizer_profile_picture_url: e.organizer_profile_picture_url
+          })));
+        }
+        return { data: eventsData, error: null };
       }
       const message = response.data?.error || `HTTP ${response.status}`;
       return { data: { events: [], total: 0, hasMore: false }, error: message };
