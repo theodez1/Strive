@@ -439,7 +439,7 @@ export default function DiscoverScreen() {
 
 
 
-  const renderEventItem = ({ item }: { item: ApiEvent }) => {
+  const renderEventItem = ({ item }: { item: EventWithDistance }) => {
     // Convertir la structure API vers la structure attendue par EventCard
     const eventForCard = {
       id: item.id,
@@ -453,6 +453,8 @@ export default function DiscoverScreen() {
       organizer_username: item.organizer_username,
       organizer_first_name: item.organizer_first_name,
       organizer_last_name: item.organizer_last_name,
+      organizer_profile_picture_url: item.organizer_profile_picture_url,
+      organizer_rating_average: item.organizer_rating_average,
       price: item.price,
       levels: item.levels,
       levels_fr: item.levels_fr,
