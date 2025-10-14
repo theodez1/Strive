@@ -89,25 +89,10 @@ class EventsBackendService {
         throw new Error('Backend URL non configurée');
       }
       
-      console.log('🔍 eventsBackendService.getEvents - Filtres reçus:', filters);
-      console.log('🔍 eventsBackendService.getEvents - URL:', `${this.baseURL}/events`);
-      
       const response = await this.http.get(`/events`, { params: filters });
-      
-      console.log('🔍 eventsBackendService.getEvents - Réponse HTTP:', {
-        status: response.status,
-        data: response.data
-      });
 
       if (response.status >= 200 && response.status < 300 && response.data?.success) {
         const eventsData = response.data.data || { events: [], total: 0, hasMore: false };
-        // Debug pour les photos de profil
-        if (eventsData.events && eventsData.events.length > 0) {
-          console.log('🔍 Frontend - Événements reçus:', eventsData.events.map(e => ({
-            name: e.name,
-            organizer_profile_picture_url: e.organizer_profile_picture_url
-          })));
-        }
         return { data: eventsData, error: null };
       }
       const message = response.data?.error || `HTTP ${response.status}`;

@@ -153,11 +153,6 @@ export class EventsService {
         filteredEvents = events.map(event => this.transformEventToEventWithDistance(event));
       }
 
-      // Debug final avant envoi
-      console.log('🔍 Backend - Événements à envoyer:', filteredEvents.map(e => ({
-        name: e.name,
-        organizer_profile_picture_url: e.organizer_profile_picture_url
-      })));
 
       return {
         success: true,
@@ -506,8 +501,6 @@ export class EventsService {
     const eventLat = parseFloat(event.latitude.toString());
     const eventLng = parseFloat(event.longitude.toString());
 
-    // Debug pour les photos de profil
-    console.log('🔍 Event:', event.name, 'Organizer profilePictureUrl:', event.organizer?.profilePictureUrl);
 
     let distance_km: number | undefined = undefined;
     if (userLat !== undefined && userLng !== undefined) {
