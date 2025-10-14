@@ -136,23 +136,45 @@ const EventCard: React.FC<EventCardProps> = ({
         <View style={styles.detailItem}>
           <Ionicons name="people-outline" size={20} color={Colors.primary} />
           <View style={styles.participantsContainer}>
-            <View style={styles.slotsIndicator}>
-              {Array.from({ length: event.total_slots }, (_, index) => {
-                const isOccupied = index < (event.total_slots - event.available_slots);
-                return (
-                  <View
-                    key={index}
-                    style={[
-                      styles.slotDot,
-                      isOccupied ? styles.occupiedSlot : styles.availableSlot
-                    ]}
-                  />
-                );
-              })}
+            <View style={styles.participantsInfo}>
+              <Text style={styles.detailText}>
+                {event.total_slots - event.available_slots}/{event.total_slots} participants
+              </Text>
+              <Text style={[styles.statusText, { color: event.available_slots === 0 ? '#EF4444' : event.available_slots <= 2 ? '#F59E0B' : Colors.primary }]}>
+                {event.available_slots === 0 ? 'Complet' : 
+                 event.available_slots === 1 ? '1 place libre' : 
+                 `${event.available_slots} places libres`}
+              </Text>
             </View>
-            <Text style={styles.detailText}>
-              {event.total_slots - event.available_slots}/{event.total_slots} participants
-            </Text>
+            <View style={styles.slotsContainer}>
+              {event.total_slots <= 30 ? (
+                // Affichage avec tirets pour <= 30 places
+                <>
+                  {Array.from({ length: event.total_slots - event.available_slots }, (_, i) => (
+                    <View 
+                      key={`occupied-${i}`}
+                      style={[
+                        styles.slot,
+                        { backgroundColor: event.available_slots === 0 ? '#EF4444' : event.available_slots <= 2 ? '#F59E0B' : Colors.primary }
+                      ]}
+                    />
+                  ))}
+                  {Array.from({ length: event.available_slots }, (_, i) => (
+                    <View 
+                      key={`available-${i}`}
+                      style={[styles.slot, styles.availableSlot]}
+                    />
+                  ))}
+                </>
+              ) : (
+                // Affichage avec nombre pour > 30 places
+                <View style={styles.largeEventIndicator}>
+                  <Text style={styles.largeEventText}>
+                    {event.total_slots - event.available_slots}/{event.total_slots}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
         </View>
       </View>
@@ -388,25 +410,39 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
   },
-  slotsIndicator: {
+  participantsInfo: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 4,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
   },
-  slotDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 3,
-    marginBottom: 2,
+  statusText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
-  occupiedSlot: {
-    backgroundColor: Colors.primary,
+  slotsContainer: {
+    flexDirection: 'row',
+    height: 6,
+  },
+  slot: {
+    flex: 1,
+    height: 6,
+    marginRight: 1,
   },
   availableSlot: {
-    backgroundColor: '#E0E0E0',
-    borderWidth: 1,
-    borderColor: '#BDBDBD',
+    backgroundColor: '#E5E7EB',
+  },
+  largeEventIndicator: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    alignSelf: 'flex-start',
+  },
+  largeEventText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primary,
   },
 });
 
