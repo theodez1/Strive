@@ -121,6 +121,7 @@ export default function DiscoverScreen() {
       }
 
       // Appeler l'API pour les événements généraux via eventsBackendService
+      console.log('🚨🚨🚨 DiscoverScreen - DÉBUT APPEL eventsBackendService.getEvents');
       console.log('🔍 DiscoverScreen - Appel eventsBackendService.getEvents avec filtres:', {
         latitude: apiFilters.lat,
         longitude: apiFilters.lng,
