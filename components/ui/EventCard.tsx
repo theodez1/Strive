@@ -136,9 +136,24 @@ const EventCard: React.FC<EventCardProps> = ({
         <View style={styles.detailItem}>
           <Ionicons name="people-outline" size={20} color={Colors.primary} />
           <View style={styles.participantsContainer}>
-            <Text style={styles.detailText}>
-              {event.total_slots - event.available_slots}/{event.total_slots} participants
-            </Text>
+            <View style={styles.participantsRow}>
+              <Text style={styles.detailText}>
+                {event.total_slots - event.available_slots}/{event.total_slots} participants
+              </Text>
+              <View style={[
+                styles.placesBadge,
+                { backgroundColor: event.available_slots === 0 ? '#FEE2E2' : event.available_slots <= 2 ? '#FEF3C7' : '#D1FAE5' }
+              ]}>
+                <Text style={[
+                  styles.placesBadgeText,
+                  { color: event.available_slots === 0 ? '#DC2626' : event.available_slots <= 2 ? '#D97706' : '#059669' }
+                ]}>
+                  {event.available_slots === 0 ? 'Complet' : 
+                   event.available_slots === 1 ? '1 place' : 
+                   `${event.available_slots} places`}
+                </Text>
+              </View>
+            </View>
             <View style={styles.simpleProgressBar}>
               <View 
                 style={[
@@ -373,6 +388,23 @@ const styles = StyleSheet.create({
   participantsContainer: {
     flex: 1,
     marginLeft: 8,
+  },
+  participantsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  placesBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  placesBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   simpleProgressBar: {
     height: 4,
