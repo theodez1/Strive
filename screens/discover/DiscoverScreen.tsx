@@ -19,6 +19,7 @@ import { useLocation } from '../../context/LocationContext';
 import { useAuth } from '../../hooks/useAuth';
 import { SimpleCalendar, EventCard } from '../../components';
 import { apiService, ApiEvent, ApiEventFilters } from '../../services/api';
+import { EventWithDistance } from '../../services/events-backend';
 import { eventsBackendService } from '../../services/events-backend';
 import AdBanner from '../../components/ads/AdBanner';
 
@@ -32,8 +33,8 @@ export default function DiscoverScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const calendarRef = useRef<any>(null);
   const [location, setLocation] = useState(getLocationDisplayName());
-  const [events, setEvents] = useState<ApiEvent[]>([]);
-  const [filteredEvents, setFilteredEvents] = useState<ApiEvent[]>([]);
+  const [events, setEvents] = useState<EventWithDistance[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<EventWithDistance[]>([]);
   const [joinedEventIds, setJoinedEventIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDate, setIsLoadingDate] = useState(false); // Chargement spécifique pour les changements de date
@@ -119,11 +120,25 @@ export default function DiscoverScreen() {
         
       }
 
-      // Appeler l'API pour les événements généraux
-      const apiEvents = await apiService.getEvents(apiFilters);
+      // Appeler l'API pour les événements généraux via eventsBackendService
+      const { data: apiEventsData, error: apiEventsError } = await eventsBackendService.getEvents({
+        latitude: apiFilters.lat,
+        longitude: apiFilters.lng,
+        radius: apiFilters.radius,
+        sports: apiFilters.sports,
+        levels: apiFilters.levels,
+        priceMin: apiFilters.priceMin,
+        priceMax: apiFilters.priceMax,
+        dateFrom: apiFilters.dateFrom,
+        dateTo: apiFilters.dateTo,
+        limit: apiFilters.limit,
+        offset: apiFilters.offset
+      });
+      
+      const apiEvents = apiEventsData?.events || [];
       
       // Récupérer aussi les événements où l'utilisateur participe déjà
-      let joinedEvents: ApiEvent[] = [];
+      let joinedEvents: EventWithDistance[] = [];
       if (userId) {
         try {
           const { data: userJoinedEvents } = await eventsBackendService.getUserJoinedEvents(userId, {
