@@ -465,6 +465,7 @@ const styles = StyleSheet.create({
   contentStatic: {
     flex: 1,
     marginTop: 16,
+    minHeight: 0,
   },
   title: {
     fontSize: 20,
@@ -511,11 +512,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   resultsSection: {
-    marginBottom: 16,
+    flex: 1,
+    minHeight: 0,
+    marginBottom: 0,
   },
   resultsScroll: {
-    maxHeight: 260,
-    borderRadius: 12,
+    flex: 1,
   },
   resultsScrollContent: {
     paddingBottom: 4,
@@ -623,6 +625,8 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   historySection: {
+    flex: 1,
+    minHeight: 0,
     marginTop: 8,
   },
   historySectionHeader: {
@@ -637,7 +641,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   historyScroll: {
-    maxHeight: 200,
+    flex: 1,
   },
   historyScrollContent: {
     paddingBottom: 4,
