@@ -172,22 +172,32 @@ const EventCard: React.FC<EventCardProps> = ({
       {/* Organisateur et Prix */}
       <View style={styles.footerRow}>
         <View style={styles.profileImageContainer}>
-          {event.organizer_profile_picture_url ? (
-            <Image
-              source={{ uri: event.organizer_profile_picture_url }}
-              style={styles.profileImage}
-              onError={(error) => {
-                console.log('Error loading profile image:', error.nativeEvent.error);
-              }}
-              onLoad={() => {
-                console.log('Profile image loaded successfully');
-              }}
-            />
-          ) : (
-            <View style={styles.profileImagePlaceholder}>
-              <Ionicons name="person" size={20} color={Colors.primary} />
-            </View>
-          )}
+          {(() => {
+            console.log('🎯 EventCard - Event:', event.name, 'Profile URL:', event.organizer_profile_picture_url);
+            console.log('🎯 EventCard - Full event data:', JSON.stringify(event, null, 2));
+            
+            if (event.organizer_profile_picture_url && event.organizer_profile_picture_url.trim() !== '') {
+              return (
+                <Image
+                  source={{ uri: event.organizer_profile_picture_url }}
+                  style={styles.profileImage}
+                  onError={(error) => {
+                    console.log('❌ Error loading profile image:', error.nativeEvent.error);
+                  }}
+                  onLoad={() => {
+                    console.log('✅ Profile image loaded successfully:', event.organizer_profile_picture_url);
+                  }}
+                />
+              );
+            } else {
+              console.log('⚠️ No profile picture URL for event:', event.name);
+              return (
+                <View style={styles.profileImagePlaceholder}>
+                  <Ionicons name="person" size={20} color={Colors.primary} />
+                </View>
+              );
+            }
+          })()}
           <View style={styles.organizerInfo}>
             <View style={styles.organizerRow}>
               <Text style={styles.organizerText}>{getOrganizerDisplayName()}</Text>
