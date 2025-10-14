@@ -135,27 +135,58 @@ const EventCard: React.FC<EventCardProps> = ({
         </View>
         <View style={styles.detailItem}>
           <Ionicons name="people-outline" size={20} color={Colors.primary} />
-          <Text style={styles.detailText}>
-            {event.total_slots - event.available_slots}/{event.total_slots} participants • {event.available_slots} places restantes
-          </Text>
+          <View style={styles.participantsContainer}>
+            <View style={styles.slotsIndicator}>
+              {Array.from({ length: event.total_slots }, (_, index) => {
+                const isOccupied = index < (event.total_slots - event.available_slots);
+                return (
+                  <View
+                    key={index}
+                    style={[
+                      styles.slotDot,
+                      isOccupied ? styles.occupiedSlot : styles.availableSlot
+                    ]}
+                  />
+                );
+              })}
+            </View>
+            <Text style={styles.detailText}>
+              {event.total_slots - event.available_slots}/{event.total_slots} participants
+            </Text>
+          </View>
         </View>
       </View>
 
       {/* Organisateur et Prix */}
       <View style={styles.footerRow}>
         <View style={styles.profileImageContainer}>
-          {event.organizer_profile_picture_url ? (
-            <Image
-              source={{ uri: event.organizer_profile_picture_url }}
-              style={styles.profileImage}
-            />
-          ) : (
-            <View style={styles.profileImagePlaceholder}>
-              <Text style={styles.profileImageText}>
-                {getOrganizerDisplayName().charAt(0).toUpperCase()}
-              </Text>
-            </View>
-          )}
+          {(() => {
+            const profileUrl = event.organizer_profile_picture_url;
+            console.log('Profile URL for organizer:', profileUrl, 'Event:', event.name);
+            
+            if (profileUrl && profileUrl.trim() !== '') {
+              return (
+                <Image
+                  source={{ uri: profileUrl }}
+                  style={styles.profileImage}
+                  onError={(error) => {
+                    console.log('Error loading profile image:', error.nativeEvent.error);
+                  }}
+                  onLoad={() => {
+                    console.log('Profile image loaded successfully');
+                  }}
+                />
+              );
+            } else {
+              return (
+                <View style={styles.profileImagePlaceholder}>
+                  <Text style={styles.profileImageText}>
+                    {getOrganizerDisplayName().charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              );
+            }
+          })()}
           <View style={styles.organizerInfo}>
             <View style={styles.organizerRow}>
               <Text style={styles.organizerText}>{getOrganizerDisplayName()}</Text>
@@ -352,6 +383,30 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 6,
+  },
+  participantsContainer: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  slotsIndicator: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 4,
+  },
+  slotDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 3,
+    marginBottom: 2,
+  },
+  occupiedSlot: {
+    backgroundColor: Colors.primary,
+  },
+  availableSlot: {
+    backgroundColor: '#E0E0E0',
+    borderWidth: 1,
+    borderColor: '#BDBDBD',
   },
 });
 
