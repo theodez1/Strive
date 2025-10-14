@@ -1,5 +1,38 @@
 // Configuration API
-const API_BASE_URL = (process.env.EXPO_PUBLIC_BACKEND_URL || '').trim();
+// 1) Essaie ENV explicite
+// 2) Sinon, déduit l'IP de l'hôte Expo pour joindre le backend en LAN (port 3001, chemin /api)
+const explicitUrl = (process.env.EXPO_PUBLIC_BACKEND_URL || '').trim();
+
+function deriveExpoHostBaseUrl(): string | null {
+  try {
+    // Expo expose la variable d'hôte via manifest ou constants
+    // En web/native, on peut utiliser location ou document si dispo
+    // Fallback: __DEV__ et Bundle URL (React Native) si disponible
+    const globalAny: any = global as any;
+
+    // Option 1: Expo Metro dev server via window.location (web)
+    if (typeof window !== 'undefined' && window.location && window.location.host) {
+      const host = window.location.hostname; // ex: 192.168.1.xx
+      return `http://${host}:3001/api`;
+    }
+
+    // Option 2: React Native bundle URL (dev)
+    const scriptURL = globalAny?.__fbBatchedBridgeConfig?.remoteModuleConfig?.sourceURL
+      || globalAny?.nativeFabricUIManager?.sourceURL
+      || globalAny?.RN$Bridgeless?.sourceURL;
+
+    if (typeof scriptURL === 'string') {
+      const match = scriptURL.match(/^(https?:\/\/)([^/:]+)(:\d+)?\//);
+      if (match && match[2]) {
+        const host = match[2];
+        return `http://${host}:3001/api`;
+      }
+    }
+  } catch (_) {}
+  return null;
+}
+
+const derivedUrl = explicitUrl || deriveExpoHostBaseUrl() || '';
 
 export interface ApiEvent {
   id: string;
@@ -66,9 +99,9 @@ class ApiService {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = API_BASE_URL;
+    this.baseURL = derivedUrl;
     if (!this.baseURL) {
-      console.warn('EXPO_PUBLIC_BACKEND_URL non défini. Configurez-le dans .env (ex: http://192.168.1.X:3001/api)');
+      console.warn('Backend URL non configurée. Définissez EXPO_PUBLIC_BACKEND_URL ou lancez via Expo dev (auto-détection).');
     }
   }
 
@@ -125,8 +158,6 @@ class ApiService {
       const url = `${this.baseURL}/events?${queryParams.toString()}`;
       console.log('🔎 GET Events URL:', url);
       
-      // Appel API optimisé
-
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -149,7 +180,6 @@ class ApiService {
         throw new Error(data.message || data.error || 'Erreur API');
       }
 
-      // Événements récupérés avec succès
       return data.data.events || [];
 
     } catch (error) {

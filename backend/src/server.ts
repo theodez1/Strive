@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -13,12 +13,13 @@ import notificationsRoutes from './routes/notifications';
 import usersRoutes from './routes/users';
 import reviewsRoutes from './routes/reviews';
 import { scheduleExistingEvents } from './services/eventScheduler';
+import os from 'os';
 
 // Charger les variables d'environnement
 dotenv.config();
 
-const app = express();
-const PORT = process.env.PORT || 3001;
+const app: Express = express();
+const PORT: number = Number(process.env.PORT) || 3001;
 
 // Middleware de sécurité
 app.use(helmet());
@@ -66,6 +67,21 @@ app.get('/', (req, res) => {
   });
 });
 
+// Fonction utilitaire pour récupérer l'IP locale (LAN)
+function getLocalLanIp(): string | null {
+  const nets = os.networkInterfaces();
+  for (const name of Object.keys(nets)) {
+    const netList = nets[name];
+    if (!netList) continue;
+    for (const net of netList) {
+      if (net.family === 'IPv4' && !net.internal) {
+        return net.address;
+      }
+    }
+  }
+  return null;
+}
+
 // Middleware de gestion d'erreurs
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Erreur serveur:', err);
@@ -85,11 +101,14 @@ app.use('*', (req, res) => {
 
 // Démarrer le serveur
 app.listen(PORT, '0.0.0.0', async () => {
+  const lanIp = getLocalLanIp();
+  const hostForMobile = lanIp ? `http://${lanIp}:${PORT}` : `http://localhost:${PORT}`;
+
   console.log(`🚀 Serveur Strive démarré sur le port ${PORT}`);
-  console.log(`📡 API disponible sur http://localhost:${PORT}`);
-  console.log(`📡 API accessible depuis mobile: http://192.168.1.26:${PORT}`);
-  console.log(`🏥 Health check: http://192.168.1.26:${PORT}/api/health`);
-  console.log(`📅 Événements: http://192.168.1.26:${PORT}/api/events`);
+  console.log(`📡 API (localhost): http://localhost:${PORT}`);
+  console.log(`📡 API (mobile LAN): ${hostForMobile}`);
+  console.log(`🏥 Health check: ${hostForMobile}/api/health`);
+  console.log(`📅 Événements: ${hostForMobile}/api/events`);
   
   // Programmer les événements existants au démarrage
   try {
