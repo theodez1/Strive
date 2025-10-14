@@ -53,6 +53,8 @@ export interface ApiEvent {
   organizer_first_name?: string;
   organizer_last_name?: string;
   organizer_username?: string;
+  organizer_profile_picture_url?: string;
+  organizer_rating_average?: number;
   description?: string;
   price: number;
   levels: string[];
