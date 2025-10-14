@@ -153,6 +153,12 @@ export class EventsService {
         filteredEvents = events.map(event => this.transformEventToEventWithDistance(event));
       }
 
+      // Debug final avant envoi
+      console.log('🔍 Backend - Événements à envoyer:', filteredEvents.map(e => ({
+        name: e.name,
+        organizer_profile_picture_url: e.organizer_profile_picture_url
+      })));
+
       return {
         success: true,
         events: filteredEvents,
