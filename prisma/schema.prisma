@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email           String               @unique @db.VarChar(255)
+  username        String               @unique @db.VarChar(50)
+  firstName       String               @map("first_name") @db.VarChar(100)
+  lastName        String               @map("last_name") @db.VarChar(100)
+  birthDate       DateTime?            @map("birth_date") @db.Date
+  region          String?              @db.VarChar(100)
+  phoneNumber     String?              @map("phone_number") @db.VarChar(20)
+  favoriteSports  sport_type[]         @default([]) @map("favorite_sports")
+  ratingAverage   Decimal?             @default(0.00) @map("rating_average") @db.Decimal(3, 2)
+  ratingCount     Int?                 @default(0) @map("rating_count")
+  stats           Json?                @default("{}")
+  preferences     Json?                @default("{}")
+  deviceTokens    String[]             @default([]) @map("device_tokens")
+  createdAt       DateTime?            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime?            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  organizedEvents Event[]              @relation("EventOrganizer")
+  sentMessages    Message[]
+  notifications   Notification[]
+  participations  Participant[]
+  pendingRequests PendingParticipant[]
+
+  @@map("users")
+}
+
+model Event {
+  id              String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name            String               @db.VarChar(200)
+  sport           sport_type
+  locationName    String               @map("location_name") @db.VarChar(200)
+  locationAddress String               @map("location_address")
+  locationCity    String               @map("location_city") @db.VarChar(100)
+  locationCountry String               @map("location_country") @db.VarChar(100)
+  latitude        Decimal              @db.Decimal(10, 8)
+  longitude       Decimal              @db.Decimal(11, 8)
+  dateTime        DateTime             @map("date_time") @db.Timestamptz(6)
+  duration        Int
+  totalSlots      Int                  @map("total_slots")
+  availableSlots  Int                  @map("available_slots")
+  organizerId     String               @map("organizer_id") @db.Uuid
+  organizerSlots  Int?                 @default(1) @map("organizer_slots")
+  description     String?
+  price           Decimal?             @db.Decimal(10, 2)
+  levels          event_level[]        @default([all])
+  createdAt       DateTime?            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime?            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  conversation    Conversation?
+  organizer       User                 @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  participants    Participant[]
+  pendingRequests PendingParticipant[]
+
+  @@index([locationCity], map: "idx_events_city")
+  @@index([dateTime], map: "idx_events_date")
+  @@index([latitude, longitude], map: "idx_events_location")
+  @@index([sport], map: "idx_events_sport")
+  @@map("events")
+}
+
+model Participant {
+  id        String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  eventId   String    @map("event_id") @db.Uuid
+  guests    Int?      @default(0)
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, eventId])
+  @@index([eventId], map: "idx_participants_event")
+  @@index([userId], map: "idx_participants_user")
+  @@map("participants")
+}
+
+model PendingParticipant {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  eventId     String    @map("event_id") @db.Uuid
+  guests      Int?      @default(0)
+  comment     String?
+  requestedAt DateTime? @default(now()) @map("requested_at") @db.Timestamptz(6)
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, eventId])
+  @@index([eventId], map: "idx_pending_participants_event")
+  @@index([userId], map: "idx_pending_participants_user")
+  @@map("pending_participants")
+}
+
+model Conversation {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  eventId       String    @unique @map("event_id") @db.Uuid
+  lastMessageId String?   @map("last_message_id") @db.Uuid
+  createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime? @default(now()) @map("updated_at") @db.Timestamptz(6)
+  event         Event     @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  messages      Message[]
+
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  conversationId String       @map("conversation_id") @db.Uuid
+  senderId       String       @map("sender_id") @db.Uuid
+  content        String
+  type           String?      @default("text") @db.VarChar(50)
+  createdAt      DateTime?    @default(now()) @map("created_at") @db.Timestamptz(6)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([conversationId], map: "idx_messages_conversation")
+  @@map("messages")
+}
+
+model Notification {
+  id        String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  type      String    @db.VarChar(100)
+  title     String    @db.VarChar(200)
+  body      String
+  data      Json?
+  readAt    DateTime? @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([createdAt], map: "idx_notifications_created")
+  @@index([userId], map: "idx_notifications_user")
+  @@map("notifications")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+enum event_level {
+  beginner
+  intermediate
+  advanced
+  all
+}
+
+enum sport_type {
+  football
+  basketball
+  tennis
+  padel
+  running
+  fitness
+  swimming
+  volleyball
+  other
+}
