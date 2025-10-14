@@ -136,57 +136,19 @@ const EventCard: React.FC<EventCardProps> = ({
         <View style={styles.detailItem}>
           <Ionicons name="people-outline" size={20} color={Colors.primary} />
           <View style={styles.participantsContainer}>
-            {/* Header avec compteur et statut */}
-            <View style={styles.participantsHeader}>
-              <View style={styles.participantsCounter}>
-                <Text style={styles.participantsNumber}>
-                  {event.total_slots - event.available_slots}
-                </Text>
-                <Text style={styles.participantsSeparator}>/</Text>
-                <Text style={styles.participantsTotal}>{event.total_slots}</Text>
-              </View>
-              <View style={[
-                styles.statusBadge,
-                { backgroundColor: event.available_slots === 0 ? '#FEE2E2' : event.available_slots <= 2 ? '#FEF3C7' : '#D1FAE5' }
-              ]}>
-                <Text style={[
-                  styles.statusBadgeText,
-                  { color: event.available_slots === 0 ? '#DC2626' : event.available_slots <= 2 ? '#D97706' : '#059669' }
-                ]}>
-                  {event.available_slots === 0 ? 'Complet' : 
-                   event.available_slots === 1 ? '1 place' : 
-                   `${event.available_slots} places`}
-                </Text>
-              </View>
-            </View>
-            
-            {/* Barre de progression moderne */}
-            <View style={styles.progressContainer}>
-              <View style={styles.progressBar}>
-                <View 
-                  style={[
-                    styles.progressFill,
-                    { 
-                      width: `${((event.total_slots - event.available_slots) / event.total_slots) * 100}%`,
-                      backgroundColor: event.available_slots === 0 ? '#EF4444' : event.available_slots <= 2 ? '#F59E0B' : Colors.primary
-                    }
-                  ]}
-                />
-              </View>
-              {event.total_slots <= 20 && (
-                <View style={styles.avatarRow}>
-                  {Array.from({ length: Math.min(event.total_slots - event.available_slots, 8) }, (_, i) => (
-                    <View key={`avatar-${i}`} style={styles.miniAvatar}>
-                      <Ionicons name="person" size={10} color="#fff" />
-                    </View>
-                  ))}
-                  {event.total_slots - event.available_slots > 8 && (
-                    <View style={styles.moreAvatar}>
-                      <Text style={styles.moreAvatarText}>+{event.total_slots - event.available_slots - 8}</Text>
-                    </View>
-                  )}
-                </View>
-              )}
+            <Text style={styles.detailText}>
+              {event.total_slots - event.available_slots}/{event.total_slots} participants
+            </Text>
+            <View style={styles.simpleProgressBar}>
+              <View 
+                style={[
+                  styles.simpleProgressFill,
+                  { 
+                    width: `${((event.total_slots - event.available_slots) / event.total_slots) * 100}%`,
+                    backgroundColor: event.available_slots === 0 ? '#EF4444' : event.available_slots <= 2 ? '#F59E0B' : Colors.primary
+                  }
+                ]}
+              />
             </View>
           </View>
         </View>
@@ -412,86 +374,16 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
   },
-  participantsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  participantsCounter: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  participantsNumber: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: Colors.primary,
-  },
-  participantsSeparator: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-    marginHorizontal: 2,
-  },
-  participantsTotal: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  progressContainer: {
-    marginTop: 4,
-  },
-  progressBar: {
-    height: 8,
+  simpleProgressBar: {
+    height: 4,
     backgroundColor: '#E5E7EB',
-    borderRadius: 4,
+    borderRadius: 2,
     overflow: 'hidden',
-    marginBottom: 6,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  avatarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     marginTop: 4,
   },
-  miniAvatar: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: -4,
-    borderWidth: 1,
-    borderColor: '#fff',
-  },
-  moreAvatar: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#6B7280',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 4,
-    borderWidth: 1,
-    borderColor: '#fff',
-  },
-  moreAvatarText: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: '#fff',
+  simpleProgressFill: {
+    height: '100%',
+    borderRadius: 2,
   },
 });
 
