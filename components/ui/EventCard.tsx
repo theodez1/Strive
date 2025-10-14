@@ -136,42 +136,55 @@ const EventCard: React.FC<EventCardProps> = ({
         <View style={styles.detailItem}>
           <Ionicons name="people-outline" size={20} color={Colors.primary} />
           <View style={styles.participantsContainer}>
-            <View style={styles.participantsInfo}>
-              <Text style={styles.detailText}>
-                {event.total_slots - event.available_slots}/{event.total_slots} participants
-              </Text>
-              <Text style={[styles.statusText, { color: event.available_slots === 0 ? '#EF4444' : event.available_slots <= 2 ? '#F59E0B' : Colors.primary }]}>
-                {event.available_slots === 0 ? 'Complet' : 
-                 event.available_slots === 1 ? '1 place libre' : 
-                 `${event.available_slots} places libres`}
-              </Text>
+            {/* Header avec compteur et statut */}
+            <View style={styles.participantsHeader}>
+              <View style={styles.participantsCounter}>
+                <Text style={styles.participantsNumber}>
+                  {event.total_slots - event.available_slots}
+                </Text>
+                <Text style={styles.participantsSeparator}>/</Text>
+                <Text style={styles.participantsTotal}>{event.total_slots}</Text>
+              </View>
+              <View style={[
+                styles.statusBadge,
+                { backgroundColor: event.available_slots === 0 ? '#FEE2E2' : event.available_slots <= 2 ? '#FEF3C7' : '#D1FAE5' }
+              ]}>
+                <Text style={[
+                  styles.statusBadgeText,
+                  { color: event.available_slots === 0 ? '#DC2626' : event.available_slots <= 2 ? '#D97706' : '#059669' }
+                ]}>
+                  {event.available_slots === 0 ? 'Complet' : 
+                   event.available_slots === 1 ? '1 place' : 
+                   `${event.available_slots} places`}
+                </Text>
+              </View>
             </View>
-            <View style={styles.slotsContainer}>
-              {event.total_slots <= 30 ? (
-                // Affichage avec tirets pour <= 30 places
-                <>
-                  {Array.from({ length: event.total_slots - event.available_slots }, (_, i) => (
-                    <View 
-                      key={`occupied-${i}`}
-                      style={[
-                        styles.slot,
-                        { backgroundColor: event.available_slots === 0 ? '#EF4444' : event.available_slots <= 2 ? '#F59E0B' : Colors.primary }
-                      ]}
-                    />
+            
+            {/* Barre de progression moderne */}
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <View 
+                  style={[
+                    styles.progressFill,
+                    { 
+                      width: `${((event.total_slots - event.available_slots) / event.total_slots) * 100}%`,
+                      backgroundColor: event.available_slots === 0 ? '#EF4444' : event.available_slots <= 2 ? '#F59E0B' : Colors.primary
+                    }
+                  ]}
+                />
+              </View>
+              {event.total_slots <= 20 && (
+                <View style={styles.avatarRow}>
+                  {Array.from({ length: Math.min(event.total_slots - event.available_slots, 8) }, (_, i) => (
+                    <View key={`avatar-${i}`} style={styles.miniAvatar}>
+                      <Ionicons name="person" size={10} color="#fff" />
+                    </View>
                   ))}
-                  {Array.from({ length: event.available_slots }, (_, i) => (
-                    <View 
-                      key={`available-${i}`}
-                      style={[styles.slot, styles.availableSlot]}
-                    />
-                  ))}
-                </>
-              ) : (
-                // Affichage avec nombre pour > 30 places
-                <View style={styles.largeEventIndicator}>
-                  <Text style={styles.largeEventText}>
-                    {event.total_slots - event.available_slots}/{event.total_slots}
-                  </Text>
+                  {event.total_slots - event.available_slots > 8 && (
+                    <View style={styles.moreAvatar}>
+                      <Text style={styles.moreAvatarText}>+{event.total_slots - event.available_slots - 8}</Text>
+                    </View>
+                  )}
                 </View>
               )}
             </View>
@@ -182,33 +195,22 @@ const EventCard: React.FC<EventCardProps> = ({
       {/* Organisateur et Prix */}
       <View style={styles.footerRow}>
         <View style={styles.profileImageContainer}>
-          {(() => {
-            const profileUrl = event.organizer_profile_picture_url;
-            console.log('Profile URL for organizer:', profileUrl, 'Event:', event.name);
-            
-            if (profileUrl && profileUrl.trim() !== '') {
-              return (
-                <Image
-                  source={{ uri: profileUrl }}
-                  style={styles.profileImage}
-                  onError={(error) => {
-                    console.log('Error loading profile image:', error.nativeEvent.error);
-                  }}
-                  onLoad={() => {
-                    console.log('Profile image loaded successfully');
-                  }}
-                />
-              );
-            } else {
-              return (
-                <View style={styles.profileImagePlaceholder}>
-                  <Text style={styles.profileImageText}>
-                    {getOrganizerDisplayName().charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-              );
-            }
-          })()}
+          {event.organizer_profile_picture_url ? (
+            <Image
+              source={{ uri: event.organizer_profile_picture_url }}
+              style={styles.profileImage}
+              onError={(error) => {
+                console.log('Error loading profile image:', error.nativeEvent.error);
+              }}
+              onLoad={() => {
+                console.log('Profile image loaded successfully');
+              }}
+            />
+          ) : (
+            <View style={styles.profileImagePlaceholder}>
+              <Ionicons name="person" size={20} color={Colors.primary} />
+            </View>
+          )}
           <View style={styles.organizerInfo}>
             <View style={styles.organizerRow}>
               <Text style={styles.organizerText}>{getOrganizerDisplayName()}</Text>
@@ -410,39 +412,86 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
   },
-  participantsInfo: {
+  participantsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  statusText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  slotsContainer: {
+  participantsCounter: {
     flexDirection: 'row',
-    height: 6,
+    alignItems: 'baseline',
   },
-  slot: {
-    flex: 1,
-    height: 6,
-    marginRight: 1,
+  participantsNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.primary,
   },
-  availableSlot: {
-    backgroundColor: '#E5E7EB',
+  participantsSeparator: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+    marginHorizontal: 2,
   },
-  largeEventIndicator: {
-    backgroundColor: '#F3F4F6',
-    borderRadius: 4,
+  participantsTotal: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  statusBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    alignSelf: 'flex-start',
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-  largeEventText: {
+  statusBadgeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: Colors.primary,
+  },
+  progressContainer: {
+    marginTop: 4,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 6,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  avatarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  miniAvatar: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: -4,
+    borderWidth: 1,
+    borderColor: '#fff',
+  },
+  moreAvatar: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#6B7280',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 4,
+    borderWidth: 1,
+    borderColor: '#fff',
+  },
+  moreAvatarText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
 
